@@ -1,0 +1,611 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
+<title>Установка ПО</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+:root{
+  --page:var(--tg-theme-secondary-bg-color,#f2f3f7);
+  --card:var(--tg-theme-section-bg-color,var(--tg-theme-bg-color,#ffffff));
+  --text:var(--tg-theme-text-color,#14161a);
+  --hint:var(--tg-theme-hint-color,#8a909c);
+  --accent:var(--tg-theme-button-color,#3d7bfd);
+  --accent-text:var(--tg-theme-button-text-color,#ffffff);
+  --link:var(--tg-theme-link-color,#3d7bfd);
+  --danger:#e5484d;--ok:#2fb36b;--warn:#f0a020;
+  --soft:color-mix(in srgb,var(--accent) 12%,transparent);
+  --line:color-mix(in srgb,var(--hint) 22%,transparent);
+}
+@media (prefers-color-scheme:dark){:root:not([data-tg]){--page:#0f1115;--card:#1a1d24;--text:#eef1f6;--hint:#8b93a3}}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--page);color:var(--text);font:15px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter,Helvetica,Arial,sans-serif}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+#app{max-width:640px;margin:0 auto;padding:10px 16px 120px}
+h2{font-size:20px;margin:6px 0 4px}
+.hint{color:var(--hint);font-size:13px;margin:4px 0 12px}
+.small{font-size:12px;margin:8px 0 0}
+.grow{flex:1;min-width:0}
+.sec{font-size:13px;font-weight:700;color:var(--hint);text-transform:uppercase;letter-spacing:.04em;margin:18px 4px 8px}
+
+.tabs{display:flex;gap:4px;background:var(--card);padding:4px;border-radius:14px;position:sticky;top:8px;z-index:5;margin-bottom:14px;box-shadow:0 2px 12px rgba(0,0,0,.06)}
+.tab{flex:1;border:0;background:none;color:var(--hint);padding:9px 4px;border-radius:10px;font-weight:600;font-size:14px;white-space:nowrap}
+.tab.on{background:var(--accent);color:var(--accent-text)}
+
+.steps{display:flex;align-items:center;gap:6px;margin:2px 0 14px;font-size:12px;color:var(--hint)}
+.steps .back{border:0;background:var(--card);width:30px;height:30px;border-radius:10px;font-size:18px;line-height:1;flex:none}
+.steps b{color:var(--text);font-size:15px}
+.st{display:flex;align-items:center;gap:5px;flex:1;white-space:nowrap}
+.st span{width:20px;height:20px;border-radius:50%;display:grid;place-items:center;background:var(--line);font-size:11px;font-weight:700;flex:none}
+.st.done span,.st.cur span{background:var(--accent);color:var(--accent-text)}
+.st.cur{color:var(--text);font-weight:600}
+
+.hero{padding:18px;border-radius:20px;background:linear-gradient(135deg,var(--accent),color-mix(in srgb,var(--accent) 50%,#8a5cff));color:#fff;margin-bottom:6px}
+.hero-t{font-size:19px;font-weight:800;margin-bottom:6px}
+.hero-s{font-size:14px;opacity:.92}
+
+.card{background:var(--card);border-radius:16px;padding:14px;margin-bottom:10px}
+.svc{display:flex;gap:12px;align-items:flex-start;border:2px solid transparent;transition:border-color .15s,transform .1s;cursor:pointer}
+.svc:active{transform:scale(.99)}
+.svc.on{border-color:var(--accent)}
+.emo{font-size:24px;width:46px;height:46px;border-radius:13px;background:var(--soft);display:grid;place-items:center;flex:none}
+.emo.sm{width:38px;height:38px;font-size:20px;border-radius:11px}
+.svc-t{font-weight:650;font-size:15.5px}
+.svc-d{color:var(--hint);font-size:13px;margin-top:3px}
+.svc-m{display:flex;gap:10px;align-items:center;margin-top:8px;font-size:14px}
+.svc-m span{color:var(--hint);font-size:13px}
+.chk{width:24px;height:24px;border-radius:50%;border:2px solid var(--line);flex:none;display:grid;place-items:center;color:var(--accent-text);font-size:13px;font-weight:800;margin-top:10px}
+.svc.on .chk{background:var(--accent);border-color:var(--accent)}
+
+.cal-h{font-weight:700;margin-bottom:10px}
+.cal-m{font-size:13px;font-weight:700;color:var(--hint);margin:6px 0}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-bottom:8px}
+.cal-w{text-align:center;font-size:11px;color:var(--hint);padding-bottom:2px}
+.day{position:relative;aspect-ratio:1;border:0;border-radius:12px;background:var(--soft);font-weight:650;font-size:15px;max-height:52px}
+.day:disabled{background:none;color:var(--hint);opacity:.45;cursor:default}
+.day.on{background:var(--accent);color:var(--accent-text)}
+.day.off{background:color-mix(in srgb,var(--danger) 16%,transparent);color:var(--danger)}
+.day.wkend{background:var(--line);color:var(--hint)}
+.day.on.off,.day.on.wkend{outline:2px solid var(--accent);outline-offset:1px}
+.dot{position:absolute;bottom:5px;left:50%;width:5px;height:5px;margin-left:-2.5px;border-radius:50%;background:var(--warn)}
+
+.slots{display:grid;grid-template-columns:repeat(auto-fill,minmax(78px,1fr));gap:8px}
+.slot{border:1.5px solid var(--line);background:none;border-radius:12px;padding:10px 4px;font-weight:650;display:flex;flex-direction:column;align-items:center;gap:2px}
+.slot small{font-size:10.5px;font-weight:500;color:var(--hint)}
+.slot.free{border-color:color-mix(in srgb,var(--accent) 45%,transparent)}
+.slot.on{background:var(--accent);border-color:var(--accent);color:var(--accent-text)}
+.slot:disabled{opacity:.38;text-decoration:line-through;cursor:default}
+.slot.a-booked{background:color-mix(in srgb,var(--warn) 18%,transparent);border-color:transparent}
+.slot.a-blocked{background:var(--line);border-color:transparent;color:var(--hint)}
+.slot.a-past{opacity:.35}
+.legend{display:flex;gap:14px;font-size:12px;color:var(--hint);margin-top:10px}
+.legend i{display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:5px}
+
+.row{display:flex;justify-content:space-between;gap:12px;padding:7px 0;align-items:center}
+.row span{color:var(--hint)}
+.row b{text-align:right}
+.row.total{border-top:1px solid var(--line);margin-top:6px;padding-top:12px;font-size:17px}
+.row.total span{color:var(--text);font-weight:700}
+.lbl{display:block;font-size:13px;color:var(--hint);margin:10px 0 6px}
+.lbl:first-child{margin-top:0}
+.inp{width:100%;border:1.5px solid var(--line);background:var(--page);border-radius:12px;padding:11px 12px;outline:none;resize:vertical}
+.inp:focus{border-color:var(--accent)}
+.inp.t{width:auto;flex:1;min-width:0;padding:8px}
+.link{border:0;background:none;color:var(--link);padding:6px 0 0;font-weight:600}
+
+.btn{border:0;background:var(--accent);color:var(--accent-text);border-radius:12px;padding:12px 16px;font-weight:700}
+.btn.sm{padding:8px 12px;font-size:13.5px;border-radius:10px}
+.btn.ghost{background:var(--soft);color:var(--accent)}
+.btn.danger{background:color-mix(in srgb,var(--danger) 14%,transparent);color:var(--danger)}
+.btn.wide{width:100%;margin:6px 0 4px}
+.btn:disabled{opacity:.5}
+
+.ord-h{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px}
+.ord-when{font-weight:600}
+.ord-items{color:var(--hint);font-size:13.5px;margin:4px 0}
+.ord-sum{font-weight:800;font-size:16px}
+.ord-who{font-size:14px;margin-top:8px;padding-top:8px;border-top:1px solid var(--line)}
+.ord-who a{color:var(--link);text-decoration:none}
+.acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.badge{font-size:12px;font-weight:650;padding:3px 8px;border-radius:8px;background:var(--line)}
+.s-new{background:color-mix(in srgb,var(--accent) 16%,transparent);color:var(--accent)}
+.s-in_work{background:color-mix(in srgb,var(--warn) 20%,transparent);color:#b87300}
+.s-done{background:color-mix(in srgb,var(--ok) 18%,transparent);color:var(--ok)}
+.s-canceled{background:color-mix(in srgb,var(--danger) 14%,transparent);color:var(--danger)}
+.badge.paid{background:color-mix(in srgb,var(--ok) 18%,transparent);color:var(--ok)}
+.badge.offb{background:var(--line);color:var(--hint)}
+
+.seg{display:flex;background:var(--line);border-radius:12px;padding:3px;margin-bottom:12px}
+.seg button{flex:1;border:0;background:none;padding:8px;border-radius:9px;font-weight:600;font-size:14px;color:var(--hint)}
+.seg button.on{background:var(--card);color:var(--text);box-shadow:0 1px 4px rgba(0,0,0,.08)}
+.chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:8px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{border:0;background:var(--card);border-radius:20px;padding:7px 12px;font-size:13.5px;font-weight:600;white-space:nowrap}
+.chip.on{background:var(--accent);color:var(--accent-text)}
+.chip b{opacity:.7;margin-left:4px}
+.stsel{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-top:12px}
+.stsel button{border:0;background:var(--page);border-radius:9px;padding:8px 2px;font-size:12px;font-weight:600;color:var(--hint)}
+.stsel button.on{color:#fff}
+.stsel button.on.new{background:var(--accent)}.stsel button.on.in_work{background:var(--warn)}
+.stsel button.on.done{background:var(--ok)}.stsel button.on.canceled{background:var(--danger)}
+.svc-row{display:flex;align-items:center;gap:12px;cursor:pointer}
+.chev{color:var(--hint);font-size:22px}
+.wd-row{display:flex;align-items:center;gap:8px;padding:6px 0}
+.sw{display:flex;align-items:center;gap:8px;width:136px;flex:none;text-transform:capitalize;font-size:14px}
+.sw input,.check input{width:20px;height:20px;accent-color:var(--accent)}
+.check{display:flex;align-items:center;gap:8px;margin-top:12px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0 6px}
+.grid3 label,.grid2 label{font-size:12px;color:var(--hint);display:flex;flex-direction:column;gap:5px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.daypanel{border-top:1px solid var(--line);margin-top:8px;padding-top:12px}
+
+.empty,.done{text-align:center;padding:40px 16px}
+.big{font-size:52px;margin-bottom:6px}
+.done p{margin:8px 0}
+.loader{display:flex;justify-content:center;padding:28px}
+.loader span{width:26px;height:26px;border-radius:50%;border:3px solid var(--line);border-top-color:var(--accent);animation:sp .8s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+
+#bar{position:fixed;left:0;right:0;bottom:0;padding:10px 16px calc(10px + env(safe-area-inset-bottom));background:var(--page);box-shadow:0 -6px 24px rgba(0,0,0,.08);display:none;z-index:10}
+#bar .in{max-width:640px;margin:0 auto;display:flex;gap:12px;align-items:center}
+#barInfo{flex:1;font-size:13px;color:var(--hint);line-height:1.25}
+#barInfo b{display:block;color:var(--text);font-size:17px}
+#barBtn{flex:1.3;border:0;background:var(--accent);color:var(--accent-text);border-radius:14px;padding:15px 12px;font-weight:700;font-size:15px}
+#barBtn:disabled{opacity:.45}
+#toast{position:fixed;left:50%;top:14px;transform:translate(-50%,-90px);background:#1d2433;color:#fff;padding:11px 16px;border-radius:12px;font-size:14px;z-index:50;transition:transform .25s;max-width:90vw;box-shadow:0 6px 24px rgba(0,0,0,.2)}
+#toast.show{transform:translate(-50%,0)}
+#toast.bad{background:var(--danger)}
+@media (max-width:380px){.sw{width:112px}.st{font-size:11px}}
+</style>
+</head>
+<body>
+<div id="app"><div class="loader"><span></span></div></div>
+<div id="bar"><div class="in"><div id="barInfo"></div><button id="barBtn"></button></div></div>
+<div id="toast"></div>
+<script>
+const tg = window.Telegram && window.Telegram.WebApp;
+const inTG = !!(tg && tg.initData);
+if (inTG) {
+  document.documentElement.setAttribute('data-tg', '1');
+  tg.ready(); tg.expand();
+  try { tg.setHeaderColor('secondary_bg_color'); tg.setBackgroundColor('secondary_bg_color'); } catch (e) {}
+}
+const qs = new URLSearchParams(location.search);
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const rub = n => Number(n).toLocaleString('ru-RU') + ' ₽';
+const dur = m => { m = +m; const h = Math.floor(m / 60), r = m % 60; return h && r ? `${h} ч ${r} мин` : h ? `${h} ч` : `${r} мин`; };
+const MONTHS = ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
+const MONTHS_G = ['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
+const WD = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
+const WD_FULL = ['понедельник','вторник','среда','четверг','пятница','суббота','воскресенье'];
+const parseD = s => { const [y, m, d] = s.split('-').map(Number); return {y, m, d, wd: (new Date(Date.UTC(y, m - 1, d)).getUTCDay() + 6) % 7}; };
+const dLabel = s => { const p = parseD(s); return `${WD[p.wd].toLowerCase()}, ${p.d} ${MONTHS_G[p.m - 1]}`; };
+const haptic = () => { try { tg.HapticFeedback.impactOccurred('light'); } catch (e) {} };
+const hapticOk = () => { try { tg.HapticFeedback.notificationOccurred('success'); } catch (e) {} };
+const loader = () => '<div class="loader"><span></span></div>';
+const empty = (msg, extra = '') => `<div class="empty"><div class="big">🗂</div><p>${msg}</p>${extra}</div>`;
+const badge = (s, t) => `<span class="badge s-${s}">${esc(t)}</span>`;
+
+function toast(msg, bad) {
+  const t = $('#toast'); t.textContent = msg; t.className = 'show' + (bad ? ' bad' : '');
+  clearTimeout(toast.t); toast.t = setTimeout(() => { t.className = bad ? 'bad' : ''; }, 2800);
+}
+async function api(path, method = 'GET', body) {
+  const r = await fetch(path, {method, headers: {'Content-Type': 'application/json', 'X-Init-Data': (tg && tg.initData) || ''},
+    body: body ? JSON.stringify(body) : undefined});
+  let j = {}; try { j = await r.json(); } catch (e) {}
+  if (!r.ok) throw new Error(j.error || `Ошибка ${r.status}`);
+  return j;
+}
+const run = async fn => { try { await fn(); } catch (e) { toast(e.message, true); } };
+const confirmBox = msg => new Promise(res => inTG && tg.showConfirm ? tg.showConfirm(msg, ok => res(!!ok)) : res(window.confirm(msg)));
+function openInvoice(url) {
+  if (inTG && tg.openInvoice) tg.openInvoice(url, st => {
+    if (st === 'paid') { hapticOk(); toast('Оплата прошла успешно'); if (S.tab === 'my') loadMy(); }
+    else if (st === 'failed') toast('Оплата не прошла', true);
+  });
+  else window.open(url, '_blank');
+}
+
+// ---------------- состояние ----------------
+const S = {
+  me: null, services: [], tab: 'shop', stack: ['catalog'],
+  sel: new Set(), adds: new Set(), form: {phone: '', comment: ''},
+  pick: null, lastOrder: null, busy: false, my: null, resched: null,
+  adm: {sub: 'orders', status: 'new', orders: null, counts: {}, svcs: null, edit: null, sch: null, days: null, date: null, slots: null},
+};
+const view = () => S.stack[S.stack.length - 1];
+const svc = id => S.services.find(s => s.id === id);
+const mains = () => S.services.filter(s => !s.is_addon);
+const addons = () => S.services.filter(s => s.is_addon);
+function cart() {
+  const items = [...S.sel, ...S.adds].map(svc).filter(Boolean);
+  return {items, total: items.reduce((a, s) => a + s.price, 0), duration: Math.max(15, items.reduce((a, s) => a + s.duration_min, 0))};
+}
+function prune() {
+  for (const id of [...S.sel]) if (!svc(id) || svc(id).is_addon) S.sel.delete(id);
+  for (const id of [...S.adds]) if (!svc(id) || !svc(id).is_addon) S.adds.delete(id);
+}
+function setPath(p, v) { const k = p.split('.'); let o = S; for (let i = 0; i < k.length - 1; i++) o = o[k[i]]; o[k[k.length - 1]] = v; }
+
+// ---------------- общие блоки ----------------
+function tabsHtml() {
+  const t = [['shop', '🛒 Услуги'], ['my', '📅 Мои записи']];
+  if (S.me.is_admin) t.push(['admin', '⚙️ Админ']);
+  return `<div class="tabs">${t.map(([k, l]) => `<button class="tab ${S.tab === k ? 'on' : ''}" data-act="tab" data-k="${k}">${l}</button>`).join('')}</div>`;
+}
+function steps(n) {
+  const names = ['Услуги', 'Доп.', 'Время', 'Итог'];
+  return `<div class="steps">${n ? '<button class="back" data-act="back">‹</button>' : ''}${names.map((x, i) =>
+    `<div class="st ${i < n ? 'done' : ''} ${i === n ? 'cur' : ''}"><span>${i < n ? '✓' : i + 1}</span>${x}</div>`).join('')}</div>`;
+}
+function svcCard(s, on, act) {
+  return `<div class="card svc ${on ? 'on' : ''}" data-act="${act}" data-id="${s.id}">
+    <div class="emo">${esc(s.emoji)}</div>
+    <div class="grow"><div class="svc-t">${esc(s.title)}</div>${s.description ? `<div class="svc-d">${esc(s.description)}</div>` : ''}
+      <div class="svc-m"><b>${s.is_addon ? '+ ' : ''}${rub(s.price)}</b>${s.duration_min ? `<span>⏱ ${dur(s.duration_min)}</span>` : ''}</div></div>
+    <div class="chk">${on ? '✓' : ''}</div></div>`;
+}
+function calendar(days, fn, act) {
+  const byM = {};
+  days.forEach(d => { const k = d.date.slice(0, 7); (byM[k] = byM[k] || []).push(d); });
+  return Object.values(byM).map(arr => {
+    const p = parseD(arr[0].date);
+    return `<div class="cal-m">${MONTHS[p.m - 1]} ${p.y}</div><div class="cal">${WD.map(w => `<div class="cal-w">${w}</div>`).join('')}${'<div></div>'.repeat(p.wd)}${arr.map(d => {
+        const o = fn(d);
+        return `<button class="day ${o.cls || ''} ${o.on ? 'on' : ''}" ${o.dis ? 'disabled' : ''} data-act="${act}" data-d="${d.date}">${parseD(d.date).d}${o.dot ? '<i class="dot"></i>' : ''}</button>`;
+      }).join('')}</div>`;
+  }).join('');
+}
+
+// ---------------- клиент: оформление ----------------
+function vCatalog() {
+  const list = mains();
+  return `${steps(0)}<div class="hero"><div class="hero-t">${esc(S.me.shop_name)}</div>
+    <div class="hero-s">Выберите одну или несколько услуг, затем дополнительные опции и удобное время. Всё время — по Москве (МСК).</div></div>
+    <div class="sec">Основные услуги</div>${list.length ? list.map(s => svcCard(s, S.sel.has(s.id), 'selMain')).join('') : empty('Услуги пока не добавлены')}`;
+}
+function vAddons() {
+  return `${steps(1)}<h2>Дополнительные услуги</h2><p class="hint">Можно выбрать несколько или пропустить этот шаг.</p>
+    ${addons().map(s => svcCard(s, S.adds.has(s.id), 'selAdd')).join('')}`;
+}
+function vPick() {
+  const p = S.pick;
+  if (!p || !p.days) return loader();
+  if (!p.days.some(d => d.free)) return `<div class="card">${empty('Свободного времени пока нет', '<p class="hint">Попробуйте позже или напишите нам в чат.</p>')}</div>`;
+  let h = `<div class="card"><div class="cal-h">Выберите дату</div>${calendar(p.days, d => ({dis: !d.free, on: d.date === p.date}), 'pickDate')}</div>`;
+  if (p.date) {
+    h += `<div class="card"><div class="cal-h">${esc(dLabel(p.date))} · время МСК</div>`;
+    if (!p.slots) h += loader();
+    else {
+      const vis = p.slots.filter(s => s.state !== 'past');
+      h += vis.length
+        ? `<div class="slots">${vis.map(s => `<button class="slot ${s.state} ${p.ts === s.ts ? 'on' : ''}" ${s.state !== 'free' ? 'disabled' : ''} data-act="pickTs" data-ts="${s.ts}">${s.time}</button>`).join('')}</div>
+           <div class="legend"><span><i style="background:var(--accent)"></i>свободно</span><span><i style="background:var(--line)"></i>занято</span></div>`
+        : '<p class="hint">На этот день свободного времени нет</p>';
+    }
+    h += '</div>';
+  }
+  return h;
+}
+const slotTime = p => ((p.slots || []).find(s => s.ts === p.ts) || {}).time || '';
+function vCheckout() {
+  const c = cart(), p = S.pick;
+  return `${steps(3)}<h2>Проверьте заказ</h2>
+    <div class="card">${c.items.map(s => `<div class="row"><span>${esc(s.emoji)} ${esc(s.title)}</span><b>${rub(s.price)}</b></div>`).join('')}
+      <div class="row total"><span>Итого</span><b>${rub(c.total)}</b></div></div>
+    <div class="card"><div class="row"><span>🗓 Дата и время</span><b>${esc(dLabel(p.date))}, ${esc(slotTime(p))} МСК</b></div>
+      <div class="row"><span>⏱ Длительность</span><b>≈ ${dur(c.duration)}</b></div>
+      <button class="link" data-act="back">Изменить время</button></div>
+    <div class="card"><label class="lbl">Телефон для связи</label>
+      <input class="inp" type="tel" data-bind="form.phone" value="${esc(S.form.phone)}" placeholder="+7 900 000-00-00">
+      <label class="lbl">Комментарий к заказу</label>
+      <textarea class="inp" rows="3" data-bind="form.comment" placeholder="Модель ПК, версия ПО, адрес для выезда…">${esc(S.form.comment)}</textarea></div>
+    ${S.me.payment_mode !== 'off' ? '<p class="hint">После подтверждения откроется окно онлайн-оплаты. Оплатить можно и позже в «Мои записи».</p>' : ''}`;
+}
+function vSuccess() {
+  const o = S.lastOrder;
+  return `<div class="done"><div class="big">✅</div><h2>Вы записаны!</h2><p><b>Заказ №${o.id}</b><br>${esc(o.when)}</p>
+    <p class="hint">Подтверждение пришло в чат с ботом. Мы напомним о записи заранее.</p>
+    <button class="btn ghost" data-act="newOrder">Оформить ещё</button></div>`;
+}
+
+// ---------------- клиент: мои записи ----------------
+function vMy() {
+  if (!S.my) return loader();
+  if (!S.my.length) return empty('У вас пока нет заказов', '<button class="btn" data-act="tab" data-k="shop">Выбрать услуги</button>');
+  const now = Date.now() / 1000;
+  const up = S.my.filter(o => ['new', 'in_work'].includes(o.status) && o.end_ts > now).sort((a, b) => a.start_ts - b.start_ts);
+  const hist = S.my.filter(o => !up.includes(o));
+  return (up.length ? `<div class="sec">Предстоящие</div>${up.map(myCard).join('')}` : '')
+       + (hist.length ? `<div class="sec">История</div>${hist.map(myCard).join('')}` : '');
+}
+function myCard(o) {
+  const a = [], active = ['new', 'in_work'].includes(o.status);
+  if (S.me.payment_mode !== 'off' && !o.paid && active) a.push(`<button class="btn sm" data-act="pay" data-id="${o.id}">Оплатить</button>`);
+  if (o.can_change) {
+    a.push(`<button class="btn sm ghost" data-act="resched" data-id="${o.id}">Перенести</button>`);
+    a.push(`<button class="btn sm danger" data-act="cancel" data-id="${o.id}">Отменить</button>`);
+  }
+  if (!active) a.push(`<button class="btn sm ghost" data-act="repeat" data-id="${o.id}">Повторить заказ</button>`);
+  return `<div class="card"><div class="ord-h"><b>№${o.id}</b>${badge(o.status, o.status_title)}${o.paid ? '<span class="badge paid">Оплачен</span>' : ''}</div>
+    <div class="ord-when">🗓 ${esc(o.when)}</div>
+    <div class="ord-items">${o.items.map(i => esc(i.title)).join(' · ')}</div>
+    <div class="ord-sum">${rub(o.total)}</div>
+    ${o.comment ? `<div class="hint">💬 ${esc(o.comment)}</div>` : ''}
+    ${a.length ? `<div class="acts">${a.join('')}</div>` : ''}
+    ${active && !o.can_change ? `<p class="hint small">Изменить запись самостоятельно можно не позднее чем за ${S.me.cancel_hours} ч — напишите нам в чат.</p>` : ''}</div>`;
+}
+function vResched() {
+  return `<div class="steps"><button class="back" data-act="back">‹</button><b>Перенос заказа №${S.resched.id}</b></div>
+    <p class="hint">Сейчас: ${esc(S.resched.when)}. Выберите новое время.</p>${vPick()}`;
+}
+
+// ---------------- админка ----------------
+const FIL = [['new', 'Новые'], ['in_work', 'В работе'], ['done', 'Выполнены'], ['canceled', 'Отменены'], ['', 'Все']];
+const STS = [['new', 'Новый'], ['in_work', 'В работе'], ['done', 'Выполнен'], ['canceled', 'Отменён']];
+function vAdmin() {
+  const subs = [['orders', 'Заказы'], ['services', 'Услуги'], ['schedule', 'Расписание']];
+  let h = `<div class="seg">${subs.map(([k, l]) => `<button class="${S.adm.sub === k ? 'on' : ''}" data-act="admSub" data-k="${k}">${l}</button>`).join('')}</div>`;
+  if (S.adm.sub === 'orders') h += vAdmOrders();
+  else if (S.adm.sub === 'services') h += S.adm.edit ? vSvcForm() : vAdmSvcs();
+  else h += vAdmSchedule();
+  return h;
+}
+function vAdmOrders() {
+  const c = S.adm.counts, all = Object.values(c).reduce((a, b) => a + b, 0);
+  let h = `<div class="chips">${FIL.map(([k, l]) => `<button class="chip ${S.adm.status === k ? 'on' : ''}" data-act="admFilter" data-s="${k}">${l}<b>${k ? (c[k] || 0) : all}</b></button>`).join('')}</div>`;
+  if (!S.adm.orders) return h + loader();
+  if (!S.adm.orders.length) return h + empty('Заказов нет');
+  return h + S.adm.orders.map(o => {
+    const who = o.username ? `<a href="#" data-act="openTg" data-u="${esc(o.username)}">@${esc(o.username)}</a>` : `ID ${o.user_id}`;
+    return `<div class="card"><div class="ord-h"><b>№${o.id}</b>${badge(o.status, o.status_title)}${o.paid ? '<span class="badge paid">Оплачен</span>' : ''}</div>
+      <div class="ord-when">🗓 ${esc(o.when)}</div>
+      <div class="ord-items">${o.items.map(i => `${esc(i.title)} — ${rub(i.price)}`).join('<br>')}</div>
+      <div class="ord-sum">${rub(o.total)} <span class="hint">· ≈ ${dur(o.duration_min)}</span></div>
+      ${o.comment ? `<div class="hint" style="margin-bottom:0">💬 ${esc(o.comment)}</div>` : ''}
+      <div class="ord-who">👤 ${esc(o.full_name || 'Клиент')} · ${who}${o.phone ? `<br>📞 <a href="tel:${esc(o.phone)}">${esc(o.phone)}</a>` : ''}</div>
+      <div class="stsel">${STS.map(([k, l]) => `<button class="${o.status === k ? 'on ' + k : ''}" data-act="setSt" data-id="${o.id}" data-s="${k}">${l}</button>`).join('')}</div></div>`;
+  }).join('');
+}
+function vAdmSvcs() {
+  if (!S.adm.svcs) return loader();
+  const row = s => `<div class="card svc-row" data-act="svcEdit" data-id="${s.id}"><div class="emo sm">${esc(s.emoji)}</div>
+    <div class="grow"><div class="svc-t">${esc(s.title)} ${s.active ? '' : '<span class="badge offb">скрыта</span>'}</div>
+    <div class="hint" style="margin:2px 0 0">${rub(s.price)} · ${dur(s.duration_min)}</div></div><span class="chev">›</span></div>`;
+  const m = S.adm.svcs.filter(s => !s.is_addon), a = S.adm.svcs.filter(s => s.is_addon);
+  return `<button class="btn wide" data-act="svcNew">+ Добавить услугу</button>
+    <div class="sec">Основные</div>${m.map(row).join('') || '<p class="hint">Нет</p>'}
+    <div class="sec">Дополнительные</div>${a.map(row).join('') || '<p class="hint">Нет</p>'}`;
+}
+function vSvcForm() {
+  const e = S.adm.edit;
+  return `<div class="steps"><button class="back" data-act="back">‹</button><b>${e.id ? 'Редактирование услуги' : 'Новая услуга'}</b></div>
+    <div class="card">
+      <div class="grid2" style="grid-template-columns:80px 1fr"><label>Иконка<input class="inp" data-bind="adm.edit.emoji" value="${esc(e.emoji)}" maxlength="4"></label>
+        <label>Название<input class="inp" data-bind="adm.edit.title" value="${esc(e.title)}" placeholder="Например, установка Windows"></label></div>
+      <label class="lbl">Описание</label><textarea class="inp" rows="3" data-bind="adm.edit.description">${esc(e.description)}</textarea>
+      <div class="grid2" style="margin-top:10px"><label>Цена, ₽<input class="inp" type="number" min="0" data-bind="adm.edit.price" value="${esc(e.price)}"></label>
+        <label>Длительность, мин<input class="inp" type="number" min="0" step="5" data-bind="adm.edit.duration_min" value="${esc(e.duration_min)}"></label></div>
+      <div class="grid2" style="margin-top:10px"><label>Тип<select class="inp" data-bind="adm.edit.is_addon">
+          <option value="0" ${e.is_addon === '0' ? 'selected' : ''}>Основная</option><option value="1" ${e.is_addon === '1' ? 'selected' : ''}>Дополнительная</option></select></label>
+        <label>Порядок<input class="inp" type="number" data-bind="adm.edit.sort" value="${esc(e.sort)}"></label></div>
+      <label class="check"><input type="checkbox" data-bind="adm.edit.active" ${e.active ? 'checked' : ''}> Показывать клиентам</label>
+    </div>
+    ${e.id ? '<button class="btn wide danger" data-act="svcDelete">Удалить услугу</button>' : ''}`;
+}
+function vAdmSchedule() {
+  const f = S.adm.sch;
+  if (!f) return loader();
+  let h = `<div class="card"><div class="cal-h">Рабочие часы (МСК)</div>
+    ${WD_FULL.map((n, i) => `<div class="wd-row"><label class="sw"><input type="checkbox" data-bind="adm.sch.week.${i}.on" ${f.week[i].on ? 'checked' : ''}>${n}</label>
+      <input type="time" class="inp t" data-bind="adm.sch.week.${i}.from" value="${f.week[i].from}">–<input type="time" class="inp t" data-bind="adm.sch.week.${i}.to" value="${f.week[i].to}"></div>`).join('')}
+    <div class="grid3"><label>Шаг слота<select class="inp" data-bind="adm.sch.slot_min">${[15, 20, 30, 45, 60, 90, 120].map(v => `<option value="${v}" ${+f.slot_min === v ? 'selected' : ''}>${v} мин</option>`).join('')}</select></label>
+      <label>Запись на, дн.<input class="inp" type="number" min="1" max="90" data-bind="adm.sch.days_ahead" value="${f.days_ahead}"></label>
+      <label>Мин. часов до<input class="inp" type="number" min="0" max="72" data-bind="adm.sch.min_lead_hours" value="${f.min_lead_hours}"></label></div>
+    <button class="btn wide" data-act="schSave">Сохранить расписание</button></div>
+    <div class="card"><div class="cal-h">Выходные дни и слоты</div>
+    <p class="hint">Нажмите на день: можно сделать его выходным или закрыть отдельные часы. Красный — выходной, точка — есть записи.</p>`;
+  h += S.adm.days ? calendar(S.adm.days, d => ({on: d.date === S.adm.date, cls: d.off ? 'off' : (d.weekend ? 'wkend' : ''), dot: d.booked}), 'admDate') : loader();
+  if (S.adm.date && S.adm.days) {
+    const d = S.adm.days.find(x => x.date === S.adm.date) || {};
+    const lab = {free: 'свободно', short: 'свободно', blocked: 'закрыто', past: 'прошло'};
+    h += `<div class="daypanel"><div class="row"><b>${esc(dLabel(S.adm.date))}</b>
+      <button class="btn sm ${d.off ? 'ghost' : 'danger'}" data-act="admDayOff">${d.off ? 'Сделать рабочим' : 'Сделать выходным'}</button></div>
+      ${d.weekend && !d.off ? '<p class="hint">По графику это нерабочий день недели.</p>' : ''}
+      ${!S.adm.slots ? loader() : S.adm.slots.length
+        ? `<div class="slots">${S.adm.slots.map(s => `<button class="slot a-${s.state}" data-act="admSlot" data-ts="${s.ts}" data-st="${s.state}" data-o="${s.order_id || ''}">${s.time}<small>${s.state === 'booked' ? '№' + s.order_id : lab[s.state]}</small></button>`).join('')}</div>
+           <p class="hint small">Нажмите на свободный слот, чтобы закрыть его, на закрытый — чтобы открыть.</p>`
+        : '<p class="hint">Нет рабочих часов</p>'}</div>`;
+  }
+  return h + '</div>';
+}
+const schToForm = s => ({slot_min: s.slot_min, days_ahead: s.days_ahead, min_lead_hours: s.min_lead_hours,
+  week: [0, 1, 2, 3, 4, 5, 6].map(i => { const v = s.week[i]; return {on: !!v, from: v ? v[0] : '10:00', to: v ? v[1] : '19:00'}; })});
+const formToSch = f => ({slot_min: +f.slot_min, days_ahead: +f.days_ahead, min_lead_hours: +f.min_lead_hours,
+  week: Object.fromEntries(f.week.map((d, i) => [i, d.on ? [d.from, d.to] : null]))});
+
+// ---------------- рендер, нижняя панель, «назад» ----------------
+let lastKey = '';
+function render() {
+  let h = tabsHtml();
+  if (S.tab === 'shop') h += ({catalog: vCatalog, addons: vAddons, datetime: () => steps(2) + vPick(), checkout: vCheckout, success: vSuccess})[view()]();
+  else if (S.tab === 'my') h += S.resched ? vResched() : vMy();
+  else h += vAdmin();
+  $('#app').innerHTML = h;
+  const key = [S.tab, view(), !!S.resched, S.adm.sub, !!S.adm.edit].join('|');
+  if (key !== lastKey) { window.scrollTo(0, 0); lastKey = key; }
+  updateBar(); updateBack();
+}
+function barCfg() {
+  if (S.tab === 'shop') {
+    const c = cart(), v = view();
+    if (v === 'catalog') return {info: S.sel.size ? `Выбрано: ${S.sel.size}<b>${rub(c.total)}</b>` : 'Выберите услугу', text: 'Далее', dis: !S.sel.size,
+      fn: () => addons().length ? push('addons') : toPick()};
+    if (v === 'addons') return {info: `Итого<b>${rub(c.total)}</b>`, text: S.adds.size ? 'Выбрать время' : 'Пропустить', fn: toPick};
+    if (v === 'datetime') return {info: `Итого<b>${rub(c.total)}</b>`, text: 'Далее', dis: !(S.pick && S.pick.ts), fn: () => push('checkout')};
+    if (v === 'checkout') return {info: `К оплате<b>${rub(c.total)}</b>`, text: S.busy ? 'Оформляем…' : 'Записаться', dis: S.busy, fn: submit};
+    return null;
+  }
+  if (S.tab === 'my' && S.resched) return {info: 'Новое время', text: S.busy ? 'Переносим…' : 'Перенести', dis: S.busy || !(S.pick && S.pick.ts), fn: doResched};
+  if (S.tab === 'admin' && S.adm.sub === 'services' && S.adm.edit) return {info: '', text: 'Сохранить', dis: S.busy, fn: svcSave};
+  return null;
+}
+let barFn = null;
+function updateBar() {
+  const c = barCfg(), bar = $('#bar');
+  if (!c) { bar.style.display = 'none'; barFn = null; return; }
+  bar.style.display = 'block';
+  $('#barInfo').innerHTML = c.info; $('#barBtn').textContent = c.text; $('#barBtn').disabled = !!c.dis; barFn = c.fn;
+}
+$('#barBtn').onclick = () => { if (barFn && !$('#barBtn').disabled) { haptic(); barFn(); } };
+const canBack = () => S.tab === 'shop' ? S.stack.length > 1 : S.tab === 'my' ? !!S.resched : S.tab === 'admin' ? !!S.adm.edit : false;
+function goBack() {
+  if (S.tab === 'shop') { if (view() === 'success') return A.newOrder(); if (S.stack.length > 1) S.stack.pop(); }
+  else if (S.tab === 'my') S.resched = null;
+  else S.adm.edit = null;
+  render();
+}
+function updateBack() { if (!inTG || !tg.BackButton) return; canBack() ? tg.BackButton.show() : tg.BackButton.hide(); }
+if (inTG && tg.BackButton) tg.BackButton.onClick(goBack);
+const push = v => { S.stack.push(v); render(); };
+
+// ---------------- загрузка данных ----------------
+async function startPick(duration, exclude) {
+  const prev = S.pick && S.pick.date;
+  const p = S.pick = {duration, exclude, date: null, ts: null, days: null, slots: null};
+  render();
+  await run(async () => {
+    const days = await api(`/api/days?duration=${duration}${exclude ? '&exclude=' + exclude : ''}`);
+    if (S.pick !== p) return;
+    p.days = days;
+    const first = days.find(d => d.date === prev && d.free) || days.find(d => d.free);
+    if (first) await loadSlots(first.date); else render();
+  });
+}
+async function loadSlots(date) {
+  const p = S.pick; p.date = date; p.ts = null; p.slots = null; render();
+  await run(async () => {
+    const r = await api(`/api/slots?date=${date}&duration=${p.duration}${p.exclude ? '&exclude=' + p.exclude : ''}`);
+    if (S.pick === p && p.date === date) { p.slots = r; render(); }
+  });
+}
+function toPick() { push('datetime'); startPick(cart().duration, null); }
+async function submit() {
+  const c = cart(); S.busy = true; updateBar();
+  try {
+    const r = await api('/api/orders', 'POST', {services: [...S.sel], addons: [...S.adds], ts: S.pick.ts, phone: S.form.phone, comment: S.form.comment});
+    hapticOk(); S.lastOrder = r.order; S.stack = ['success']; S.sel.clear(); S.adds.clear(); S.form.comment = ''; S.pick = null; S.my = null;
+    S.busy = false; render();
+    if (r.invoice_url) openInvoice(r.invoice_url);
+  } catch (e) {
+    toast(e.message, true);
+    if (/занято/.test(e.message)) { S.stack.pop(); startPick(c.duration, null); }
+  } finally { S.busy = false; updateBar(); }
+}
+async function doResched() {
+  S.busy = true; updateBar();
+  try {
+    await api(`/api/orders/${S.resched.id}/reschedule`, 'POST', {ts: S.pick.ts});
+    hapticOk(); toast('Запись перенесена'); S.resched = null; S.pick = null; await loadMy();
+  } catch (e) { toast(e.message, true); } finally { S.busy = false; updateBar(); }
+}
+async function loadMy() { await run(async () => { S.my = await api('/api/orders/my'); render(); }); }
+async function admLoadOrders() {
+  await run(async () => { const r = await api(`/api/admin/orders?status=${S.adm.status}`); S.adm.orders = r.orders; S.adm.counts = r.counts; render(); });
+}
+async function admLoadDays() { S.adm.days = await api('/api/admin/days'); }
+async function admLoadSlots() { if (S.adm.date) S.adm.slots = await api(`/api/admin/slots?date=${S.adm.date}`); }
+async function admLoad() {
+  const s = S.adm.sub;
+  if (s === 'orders') return admLoadOrders();
+  if (s === 'services') return run(async () => { S.adm.svcs = await api('/api/services?all=1'); render(); });
+  return run(async () => { S.adm.sch = schToForm(await api('/api/admin/schedule')); render(); await admLoadDays(); await admLoadSlots(); render(); });
+}
+async function refreshServices() {
+  S.adm.svcs = await api('/api/services?all=1'); S.services = await api('/api/services'); prune(); render();
+}
+async function svcSave() {
+  const e = S.adm.edit;
+  const body = {title: e.title, description: e.description, price: +e.price || 0, duration_min: +e.duration_min || 0,
+    is_addon: e.is_addon === '1', emoji: e.emoji, active: !!e.active, sort: +e.sort || 0};
+  S.busy = true; updateBar();
+  try {
+    if (e.id) await api(`/api/admin/services/${e.id}`, 'PUT', body); else await api('/api/admin/services', 'POST', body);
+    toast('Сохранено'); S.adm.edit = null; await refreshServices();
+  } catch (err) { toast(err.message, true); } finally { S.busy = false; updateBar(); }
+}
+
+// ---------------- действия ----------------
+const A = {
+  tab({k}) { S.tab = k; S.resched = null; S.adm.edit = null; render(); if (k === 'my') loadMy(); if (k === 'admin') admLoad(); },
+  back: goBack,
+  selMain({id}) { id = +id; S.sel.has(id) ? S.sel.delete(id) : S.sel.add(id); haptic(); render(); },
+  selAdd({id}) { id = +id; S.adds.has(id) ? S.adds.delete(id) : S.adds.add(id); haptic(); render(); },
+  pickDate({d}) { haptic(); loadSlots(d); },
+  pickTs({ts}) { S.pick.ts = +ts; haptic(); render(); },
+  newOrder() { S.sel.clear(); S.adds.clear(); S.form.comment = ''; S.pick = null; S.stack = ['catalog']; render(); },
+  async cancel({id}) {
+    if (!await confirmBox('Отменить эту запись?')) return;
+    await run(async () => { await api(`/api/orders/${id}/cancel`, 'POST'); toast('Запись отменена'); await loadMy(); });
+  },
+  resched({id}) { S.resched = S.my.find(x => x.id == id); S.pick = null; startPick(S.resched.duration_min, S.resched.id); },
+  pay({id}) { run(async () => openInvoice((await api(`/api/orders/${id}/pay`, 'POST')).invoice_url)); },
+  repeat({id}) {
+    const o = S.my.find(x => x.id == id); S.sel.clear(); S.adds.clear();
+    o.items.forEach(i => { const s = svc(i.id); if (s) (s.is_addon ? S.adds : S.sel).add(s.id); });
+    S.tab = 'shop'; S.stack = ['catalog']; render();
+    if (!S.sel.size) toast('Эти услуги больше недоступны', true);
+  },
+  admSub({k}) { S.adm.sub = k; S.adm.edit = null; render(); admLoad(); },
+  admFilter({s}) { S.adm.status = s; S.adm.orders = null; render(); admLoadOrders(); },
+  setSt({id, s}) { run(async () => { await api(`/api/admin/orders/${id}/status`, 'POST', {status: s}); haptic(); toast('Статус обновлён, клиент уведомлён'); await admLoadOrders(); }); },
+  openTg({u}) { const url = 'https://t.me/' + u; inTG && tg.openTelegramLink ? tg.openTelegramLink(url) : window.open(url, '_blank'); },
+  svcNew() { S.adm.edit = {title: '', description: '', price: 1000, duration_min: 60, is_addon: '0', emoji: '💻', active: true, sort: 0}; render(); },
+  svcEdit({id}) { const s = S.adm.svcs.find(x => x.id == id); S.adm.edit = {...s, is_addon: s.is_addon ? '1' : '0', active: !!s.active}; render(); },
+  async svcDelete() {
+    if (!await confirmBox('Удалить услугу? В старых заказах она сохранится.')) return;
+    await run(async () => { await api(`/api/admin/services/${S.adm.edit.id}`, 'DELETE'); toast('Услуга удалена'); S.adm.edit = null; await refreshServices(); });
+  },
+  schSave() {
+    run(async () => { S.adm.sch = schToForm(await api('/api/admin/schedule', 'PUT', formToSch(S.adm.sch))); toast('Расписание сохранено'); await admLoadDays(); await admLoadSlots(); render(); });
+  },
+  admDate({d}) { S.adm.date = d; S.adm.slots = null; render(); run(async () => { await admLoadSlots(); render(); }); },
+  admDayOff() { run(async () => { await api('/api/admin/days/toggle', 'POST', {date: S.adm.date}); await admLoadDays(); await admLoadSlots(); haptic(); render(); }); },
+  admSlot({ts, st, o}) {
+    if (st === 'booked') { S.adm.sub = 'orders'; S.adm.status = ''; S.adm.orders = null; render(); admLoadOrders(); return toast('Заказ №' + o); }
+    if (st === 'past') return;
+    run(async () => { await api('/api/admin/slots/toggle', 'POST', {ts: +ts}); await admLoadSlots(); await admLoadDays(); haptic(); render(); });
+  },
+};
+document.addEventListener('click', e => {
+  const el = e.target.closest('[data-act]');
+  if (!el || el.disabled) return;
+  if (el.tagName === 'A') e.preventDefault();
+  const fn = A[el.dataset.act];
+  if (fn) fn({...el.dataset});
+});
+const bind = e => { const b = e.target.dataset && e.target.dataset.bind; if (b) setPath(b, e.target.type === 'checkbox' ? e.target.checked : e.target.value); };
+document.addEventListener('input', bind);
+document.addEventListener('change', bind);
+
+// ---------------- старт ----------------
+(async () => {
+  try {
+    S.me = await api('/api/me');
+    S.services = await api('/api/services');
+    S.form.phone = (S.me.user && S.me.user.phone) || '';
+    const v = qs.get('v') || (tg && tg.initDataUnsafe && tg.initDataUnsafe.start_param);
+    if (v === 'my') { S.tab = 'my'; render(); loadMy(); }
+    else if (v === 'admin' && S.me.is_admin) { S.tab = 'admin'; render(); admLoad(); }
+    else render();
+  } catch (e) {
+    $('#app').innerHTML = empty(esc(e.message), '<p class="hint">Откройте магазин через кнопку в боте.</p>');
+  }
+})();
+</script>
+</body>
+</html>
