@@ -13,6 +13,7 @@ CREATE TABLE IF NOT EXISTS services(
     duration_min INTEGER NOT NULL DEFAULT 60,
     is_addon INTEGER NOT NULL DEFAULT 0,
     emoji TEXT NOT NULL DEFAULT '💻',
+    image TEXT NOT NULL DEFAULT '',
     active INTEGER NOT NULL DEFAULT 1,
     sort INTEGER NOT NULL DEFAULT 0
 );
@@ -62,36 +63,43 @@ DEFAULT_SCHEDULE = {
 LIC = " Лицензия — ваша, приобретается отдельно у правообладателя или официального реселлера."
 
 # Версия стартового каталога: при увеличении каталог в пустом магазине (без заказов) пересоздаётся
-CATALOG_VERSION = 2
+CATALOG_VERSION = 3
 
 SEED_SERVICES = [
-    # title, description, price, duration, is_addon, emoji, sort
+    # title, description, price, duration, is_addon, emoji, sort, image
     ("Установка AutoCAD 2024 + СПДС (Windows)",
-     "Установка и настройка AutoCAD 2024 с модулем СПДС: русский интерфейс, шаблоны, единицы, печать." + LIC, 623, 60, 0, "📐", 1),
+     "Установка и настройка AutoCAD 2024 с модулем СПДС: русский интерфейс, шаблоны, единицы, печать." + LIC,
+     623, 60, 0, "📐", 1, "/img/autocad2024.jpg"),
     ("Установка SketchUp 2026 + Enscape + V-Ray (Windows)",
-     "SketchUp Pro с плагинами визуализации Enscape и V-Ray, проверка рендера и настройка библиотек." + LIC, 1046, 90, 0, "🏠", 2),
+     "SketchUp Pro с плагинами визуализации Enscape и V-Ray, проверка рендера и настройка библиотек." + LIC,
+     1046, 90, 0, "🏠", 2, "/img/sketchup.jpg"),
     ("Установка Adobe Illustrator 2026 (Windows)",
-     "Установка через Creative Cloud, вход в ваш аккаунт Adobe, шрифты и рабочее пространство." + LIC, 623, 45, 0, "🎨", 3),
+     "Установка через Creative Cloud, вход в ваш аккаунт Adobe, шрифты и рабочее пространство." + LIC,
+     623, 45, 0, "🎨", 3, "/img/illustrator.jpg"),
     ("Установка ArchiCAD 28 (macOS)",
-     "Установка ArchiCAD 28 на Mac, русская локализация, библиотеки объектов и шаблон проекта." + LIC, 623, 60, 0, "🏛️", 4),
+     "Установка ArchiCAD 28 на Mac, русская локализация, библиотеки объектов и шаблон проекта." + LIC,
+     623, 60, 0, "🏛️", 4, "/img/archicad.jpg"),
     ("Установка Microsoft Office 2024 (macOS)",
-     "Word, Excel, PowerPoint, Outlook на Mac, вход в учётную запись Microsoft, настройка почты." + LIC, 700, 45, 0, "📄", 5),
+     "Word, Excel, PowerPoint, Outlook на Mac, вход в учётную запись Microsoft, настройка почты." + LIC,
+     700, 45, 0, "📄", 5, "/img/office-mac.jpg"),
     ("Установка CorelDRAW Graphics Suite 2025 (Windows)",
-     "CorelDRAW, Photo-Paint и шрифты пакета, настройка цветовых профилей для печати." + LIC, 623, 45, 0, "🖌️", 6),
+     "CorelDRAW, Photo-Paint и шрифты пакета, настройка цветовых профилей для печати." + LIC,
+     623, 45, 0, "🖌️", 6, "/img/coreldraw.jpg"),
     ("Установка ZBrush 2026 (Windows)",
-     "Установка ZBrush, настройка графического планшета, кистей и горячих клавиш." + LIC, 623, 45, 0, "🗿", 7),
+     "Установка ZBrush, настройка графического планшета, кистей и горячих клавиш." + LIC,
+     623, 45, 0, "🗿", 7, "/img/zbrush.jpg"),
     ("Установка AutoCAD 2026 (Windows)",
-     "Установка и настройка AutoCAD 2026: интерфейс, шаблоны, стили печати, перенос пользовательских настроек." + LIC, 623, 60, 0, "📐", 8),
-    ("Перенос проектов и настроек", "Перенесём проекты, библиотеки, шаблоны и пользовательские настройки со старого компьютера.", 400, 30, 1, "📦", 10),
-    ("Шрифты и шаблоны ГОСТ / СПДС", "Установка шрифтов ГОСТ, рамок, штампов и шаблонов оформления чертежей.", 300, 20, 1, "📏", 11),
-    ("Резервная копия данных", "Сохраним файлы, фото и документы перед работами.", 800, 30, 1, "💾", 12),
-    ("Удалённый доступ", "Настроим удалённую помощь для быстрой поддержки в будущем.", 500, 15, 1, "🖥️", 13),
-    ("Выезд мастера", "Работы у вас на месте вместо удалённого подключения.", 1000, 0, 1, "🚗", 14),
+     "Установка и настройка AutoCAD 2026: интерфейс, шаблоны, стили печати, перенос пользовательских настроек." + LIC,
+     623, 60, 0, "📐", 8, "/img/autocad2026.jpg"),
+    ("Резервная копия данных", "Сохраним файлы, фото и документы перед работами.", 800, 30, 1, "💾", 12, ""),
+    ("Удалённый доступ", "Настроим удалённую помощь для быстрой поддержки в будущем.", 500, 15, 1, "🖥️", 13, ""),
+    ("Выезд мастера", "Работы у вас на месте вместо удалённого подключения.", 1000, 0, 1, "🚗", 14, ""),
 ]
+REMOVED_IN_V3 = ("Перенос проектов и настроек", "Шрифты и шаблоны ГОСТ / СПДС")
 
 ORDER_FIELDS = {"status", "paid", "payment_id", "reminded_24", "reminded_1",
                 "start_ts", "end_ts", "comment", "phone"}
-SERVICE_FIELDS = ("title", "description", "price", "duration_min", "is_addon", "emoji", "active", "sort")
+SERVICE_FIELDS = ("title", "description", "price", "duration_min", "is_addon", "emoji", "image", "active", "sort")
 
 
 def _order(row):
@@ -114,15 +122,22 @@ class DB:
         await self.conn.execute("PRAGMA journal_mode=WAL")
         await self.conn.executescript(SCHEMA)
         await self.conn.commit()
+        cols = {r["name"] for r in await self.q("PRAGMA table_info(services)")}
+        if "image" not in cols:  # база создана старой версией
+            await self.x("ALTER TABLE services ADD COLUMN image TEXT NOT NULL DEFAULT ''")
         version = await self.get_setting("catalog_version") or 1
-        if version < CATALOG_VERSION and not await self.q1("SELECT id FROM orders LIMIT 1"):
-            await self.conn.execute("DELETE FROM services")  # магазин ещё пустой — меняем стартовый каталог
-            await self.conn.commit()
         if version < CATALOG_VERSION:
+            if not await self.q1("SELECT id FROM orders LIMIT 1"):
+                await self.x("DELETE FROM services")  # магазин ещё пустой — ставим актуальный стартовый каталог
+            else:  # заказы уже есть — аккуратно правим только нужное
+                await self.x(f"DELETE FROM services WHERE title IN ({','.join('?' * len(REMOVED_IN_V3))})", REMOVED_IN_V3)
+                for row in SEED_SERVICES:
+                    if row[7]:
+                        await self.x("UPDATE services SET image=? WHERE title=? AND image=''", (row[7], row[0]))
             await self.set_setting("catalog_version", CATALOG_VERSION)
         if not await self.q1("SELECT id FROM services LIMIT 1"):
             await self.conn.executemany(
-                "INSERT INTO services(title,description,price,duration_min,is_addon,emoji,sort) VALUES(?,?,?,?,?,?,?)",
+                "INSERT INTO services(title,description,price,duration_min,is_addon,emoji,sort,image) VALUES(?,?,?,?,?,?,?,?)",
                 SEED_SERVICES)
             await self.conn.commit()
         if await self.get_setting("schedule") is None:

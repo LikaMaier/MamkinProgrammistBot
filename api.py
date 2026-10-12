@@ -1,9 +1,11 @@
 """HTTP-сервер: раздаёт Mini App и JSON API."""
+import base64
 import hashlib
 import hmac
 import json
 import logging
 import time
+import uuid
 from datetime import date, datetime, timedelta
 from pathlib import Path
 from urllib.parse import parse_qsl
@@ -19,6 +21,7 @@ from utils import STATUS_TITLES, fmt_dt
 
 log = logging.getLogger(__name__)
 WEBAPP_DIR = Path(__file__).parent / "webapp"
+MEDIA_DIR = Path(config.DB_PATH).resolve().parent / "media"
 
 
 # ---------- авторизация через Telegram initData ----------
@@ -158,6 +161,29 @@ async def a_status(r):
     return J(pub(await logic.set_status(db, bot, int(r.match_info["id"]), body["status"])))
 
 
+def _image_url(v) -> str:
+    v = str(v or "").strip()[:500]
+    if v and not (v.startswith("/img/") or v.startswith("/media/") or v.startswith("https://")):
+        raise ApiError("Фото: загрузите файл или укажите ссылку https://")
+    return v
+
+
+async def a_upload(r):
+    """Загрузка фото услуги: data URL (jpeg/png/webp) до 3 МБ, сохраняется рядом с базой."""
+    data = str((await r.json()).get("data", ""))
+    head, _, b64 = data.partition(",")
+    ext = {"data:image/jpeg;base64": "jpg", "data:image/png;base64": "png", "data:image/webp;base64": "webp"}.get(head)
+    if not ext or not b64:
+        raise ApiError("Поддерживаются JPG, PNG и WebP")
+    raw = base64.b64decode(b64, validate=True)
+    if len(raw) > 3 * 1024 * 1024:
+        raise ApiError("Файл больше 3 МБ")
+    MEDIA_DIR.mkdir(parents=True, exist_ok=True)
+    name = f"{uuid.uuid4().hex}.{ext}"
+    (MEDIA_DIR / name).write_bytes(raw)
+    return J({"url": f"/media/{name}"})
+
+
 def _service_payload(b: dict) -> dict:
     title = str(b.get("title", "")).strip()
     if not title:
@@ -167,7 +193,8 @@ def _service_payload(b: dict) -> dict:
         raise ApiError("Цена и длительность не могут быть отрицательными")
     return {"title": title[:120], "description": str(b.get("description", "")).strip()[:600],
             "price": price, "duration_min": duration, "is_addon": 1 if b.get("is_addon") else 0,
-            "emoji": (str(b.get("emoji") or "💻").strip() or "💻")[:8], "active": 0 if b.get("active") is False else 1,
+            "emoji": (str(b.get("emoji") or "💻").strip() or "💻")[:8],
+            "image": _image_url(b.get("image")), "active": 0 if b.get("active") is False else 1,
             "sort": int(b.get("sort", 0))}
 
 
@@ -259,11 +286,14 @@ async def health(_):
 
 
 def create_app(bot: Bot, db: DB) -> web.Application:
-    app = web.Application(middlewares=[mw])
+    app = web.Application(middlewares=[mw], client_max_size=6 * 1024 * 1024)
     app["bot"], app["db"] = bot, db
     R = app.router
     R.add_get("/", index)
     R.add_get("/health", health)
+    R.add_static("/img/", WEBAPP_DIR / "img")
+    MEDIA_DIR.mkdir(parents=True, exist_ok=True)
+    R.add_static("/media/", MEDIA_DIR)
     R.add_get("/api/me", me)
     R.add_get("/api/services", services)
     R.add_get("/api/days", days)
@@ -275,6 +305,7 @@ def create_app(bot: Bot, db: DB) -> web.Application:
     R.add_post("/api/orders/{id}/pay", pay_order)
     R.add_get("/api/admin/orders", a_orders)
     R.add_post("/api/admin/orders/{id}/status", a_status)
+    R.add_post("/api/admin/upload", a_upload)
     R.add_post("/api/admin/services", a_service_create)
     R.add_put("/api/admin/services/{id}", a_service_update)
     R.add_delete("/api/admin/services/{id}", a_service_delete)
